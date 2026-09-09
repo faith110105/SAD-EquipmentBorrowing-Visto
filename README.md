@@ -52,3 +52,6 @@ Take screenshots of:
 - GitHub repository
 - GitHub Pages live system
 - Functional testing results
+
+Account Login - faith@gmail.com
+                faith1105
