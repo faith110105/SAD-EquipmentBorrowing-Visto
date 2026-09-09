@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipment Borrowing Monitoring System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="appShell" class="hidden">
+    <header class="topbar">
+      <div>
+        <h1>Equipment Borrowing Monitoring System</h1>
+        <p id="userEmail"></p>
+      </div>
+      <button id="logoutBtn" class="btn danger">Logout</button>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-section="dashboardSection">Dashboard</button>
+      <button class="tab" data-section="equipmentSection">Equipment</button>
+      <button class="tab" data-section="transactionsSection">Transactions</button>
+    </nav>
+
+    <main class="container">
+      <section id="dashboardSection" class="section">
+        <div class="page-heading">
+          <div><h2>Dashboard</h2><p>Current equipment and borrowing summary.</p></div>
+        </div>
+        <div class="stats">
+          <div class="stat-card"><span>Total Equipment</span><strong id="totalEquipment">0</strong></div>
+          <div class="stat-card"><span>Available</span><strong id="availableEquipment">0</strong></div>
+          <div class="stat-card"><span>Borrowed</span><strong id="borrowedEquipment">0</strong></div>
+          <div class="stat-card"><span>Returned Transactions</span><strong id="returnedTransactions">0</strong></div>
+          <div class="stat-card"><span>Overdue</span><strong id="overdueTransactions">0</strong></div>
+        </div>
+      </section>
+
+      <section id="equipmentSection" class="section hidden">
+        <div class="page-heading">
+          <div><h2>Equipment</h2><p>Add, view, edit, search, and delete equipment.</p></div>
+          <button id="addEquipmentBtn" class="btn primary">+ Add Equipment</button>
+        </div>
+
+        <div class="toolbar">
+          <input id="equipmentSearch" type="search" placeholder="Search equipment name or asset code...">
+          <select id="availabilityFilter">
+            <option value="All">All Availability</option>
+            <option value="Available">Available</option>
+            <option value="Borrowed">Borrowed</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Code</th><th>Equipment</th><th>Category</th><th>Condition</th><th>Availability</th><th>Actions</th></tr></thead>
+            <tbody id="equipmentTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="transactionsSection" class="section hidden">
+        <div class="page-heading">
+          <div><h2>Borrowing Transactions</h2><p>Record borrowing, return equipment, search, and filter transactions.</p></div>
+          <button id="newBorrowBtn" class="btn primary">+ New Borrowing</button>
+        </div>
+
+        <div class="toolbar">
+          <input id="transactionSearch" type="search" placeholder="Search borrower or equipment...">
+          <select id="transactionFilter">
+            <option value="All">All Status</option>
+            <option value="Borrowed">Borrowed</option>
+            <option value="Returned">Returned</option>
+            <option value="Overdue">Overdue</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Equipment</th><th>Borrower</th><th>Type</th><th>Department</th><th>Borrowed</th><th>Due</th><th>Returned</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="transactionsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="equipmentModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-header"><h3 id="equipmentModalTitle">Add Equipment</h3><button class="close" data-close="equipmentModal">×</button></div>
+      <form id="equipmentForm">
+        <input type="hidden" id="equipmentId">
+        <label>Equipment Name<input id="equipmentName" required></label>
+        <label>Category<input id="equipmentCategory" required></label>
+        <label>Asset Code<input id="assetCode" required></label>
+        <label>Condition
+          <select id="equipmentCondition"><option>Good</option><option>Fair</option><option>For Repair</option></select>
+        </label>
+        <div class="form-actions"><button type="button" class="btn" data-close="equipmentModal">Cancel</button><button class="btn primary">Save Equipment</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="borrowModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-header"><h3>New Borrowing Transaction</h3><button class="close" data-close="borrowModal">×</button></div>
+      <form id="borrowForm">
+        <label>Borrower Name<input id="borrowerName" required></label>
+        <label>Borrower Type
+          <select id="borrowerType" required><option>Student</option><option>Faculty</option><option>Staff</option></select>
+        </label>
+     <label for="department">Department</label>
+<input
+    type="text"
+    id="department"
+    list="department-options"
+    placeholder="Select or type department"
+    required
+>
+
+<datalist id="department-options">
+    <option value="College of Information Technology">
+    <option value="College of Education">
+    <option value="College of Agriculture">
+    <option value="College of Business Administration">
+    <option value="College of Arts and Sciences">
+    <option value="College of Engineering">
+    <option value="Administration">
+</datalist>
+        <label>Equipment<select id="borrowEquipment" required></select></label>
+        <label>Date Borrowed<input id="dateBorrowed" type="date" required></label>
+        <label>Due Date<input id="dueDate" type="date" required></label>
+        <div class="form-actions"><button type="button" class="btn" data-close="borrowModal">Cancel</button><button class="btn primary">Save Borrowing Transaction</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script src="auth.js"></script>
+  <script src="equipment.js"></script>
+  <script src="transactions.js"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", async () => {
+      await requireAuth();
+      if (window.currentUser) {
+        document.getElementById("appShell").classList.remove("hidden");
+        await initializeApp();
+      }
+    });
+
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.section).classList.remove("hidden");
+      });
+    });
+
+    document.querySelectorAll("[data-close]").forEach(btn => {
+      btn.addEventListener("click", () => document.getElementById(btn.dataset.close).classList.add("hidden"));
+    });
+  </script>
+</body>
+</html>
